@@ -4,7 +4,7 @@
 #include <stack>      // Para usar la estructura stack (pila)
 using namespace std;
 
-// Función que comprueba si los paréntesis en 'operacion' están bien balanceados
+// Funcion que comprueba si los paréntesis en 'operacion' están bien balanceados
 string validarParentesis(string operacion) {
     stack<char> parentesis;          // Pila para guardar paréntesis de apertura
     for (char c : operacion) {
