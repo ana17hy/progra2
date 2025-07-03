@@ -1,4 +1,4 @@
-// BFS
+// ALGORITMO BFS
 
 #include <iostream>
 #include <unordered_map>          // para usar unordered_map (lista de adyacencia)
