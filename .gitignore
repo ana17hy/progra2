@@ -1,0 +1,13 @@
+# MacOS
+.DS_Store
+
+# CLion
+.idea/
+cmake-build-*/
+
+# General
+*.log
+*.tmp
+*.o
+*.out
+build/
