@@ -240,7 +240,7 @@ int main() {
              << e.what() << endl;
     }
 
-    // Ejemplo: Uso de AppFactory para crear App según sistema operativo
+    // Ejemplo 1: Uso de AppFactory para crear App según sistema operativo
     /*
     AppFactory* factory;
     #ifdef _WIN32
