@@ -2,193 +2,278 @@
 
 #include <iostream>
 #include <vector>
-#include <string>
-#include <cstdlib> // para rand()
 using namespace std;
 
-// ========== PATRÓN OBSERVER ==========
-// Observador base: cualquier clase que quiera "seguir" a un usuario
-class Observer {
-public:
-    virtual void noticar(string historia, string usuario) = 0;
-};
+//EJEMPLO 1 - PATRÓN SINGLETON
 
-// Seguidor real: recibe historias
-class Seguidor : public Observer {
-private:
-    string nombre;
-public:
-    Seguidor(const string& nombre) : nombre(nombre) {}
-    void noticar(string historia, string usuario) override {
-        cout << nombre << " - Nueva historia de " << usuario << ": " << historia << endl;
+// Representa una red con un archivo estático y un método estático para accederlo
+struct red {
+    static int archivo;  // Variable compartida entre todas las instancias
+    string usuario;
+
+    red(string usr) : usuario(usr) {}
+
+    static int get() {
+        return archivo;
     }
 };
 
-// Observador externo: no recibe historias reales
-class Externo : public Observer {
+int red::archivo = 3;
+
+// Clase Singleton: solo permite una única instancia
+class Singleton {
 private:
-    string nombre;
+    static Singleton* instance; // Apuntador a la única instancia
+
+    // Constructor privado
+    Singleton() {}
+
 public:
-    Externo(const string& nombre) : nombre(nombre) {}
-    void noticar(string historia, string usuario) override {
-        cout << nombre << " - No hay nueva historia de " << usuario << endl;
-    }
-};
-
-// Usuario que publica historias
-class Usuario {
-private:
-    string nombre;
-    vector<Observer*> observadores;
-public:
-    Usuario(const string& nombre) : nombre(nombre) {}
-
-    // Agrega seguidores al usuario
-    void agregarObservador(Observer* observador) {
-        observadores.push_back(observador);
-    }
-
-    // Notifica a todos los seguidores
-    void notificarSeguidores(const string& historia) {
-        for (Observer* obs : observadores)
-            obs->noticar(historia, nombre);
-    }
-};
-
-// ========== PATRÓN MEMENTO ==========
-// Guarda un estado anterior del personaje
-class Memento {
-private:
-    int nivel;
-    int X;
-    int Y;
-public:
-    Memento(const int& niv, int posicionX, int posicionY)
-        : nivel(niv), X(posicionX), Y(posicionY) {}
-
-    int getNivel() const { return nivel; }
-    int getPosicionX() const { return X; }
-    int getPosicionY() const { return Y; }
-};
-
-// Personaje que puede guardar y restaurar estados
-class Personaje {
-private:
-    string nombre;
-    int nivel;
-    int x, y;
-    vector<Memento*> mementos;
-public:
-    Personaje(const string& nombre) : nombre(nombre), nivel(1), x(0), y(0) {}
-
-    void info() {
-        cout << "Nivel actual: " << nivel << ", Posición=(" << x << ", " << y << ")\n";
-    }
-
-    void guardarEstado() {
-        // Simula subir de nivel y moverse aleatoriamente
-        nivel += rand() % 3;
-        x += rand() % 3;
-        y += rand() % 3;
-        cout << "Guardo Estado: Nivel " << nivel << ", Pos=(" << x << ", " << y << ")\n";
-        mementos.push_back(new Memento(nivel, x, y));
-    }
-
-    void restaurarEstado() {
-        cout << "=== Estados guardados ===\n";
-        for (int i = 0; i < mementos.size(); i++) {
-            cout << "[" << i+1 << "] Nivel: " << mementos[i]->getNivel()
-                 << ", Posición: (" << mementos[i]->getPosicionX()
-                 << ", " << mementos[i]->getPosicionY() << ")\n";
+    // Método estático que devuelve la instancia única
+    static Singleton* getInstance() {
+        if (instance == nullptr) {
+            instance = new Singleton();
         }
-        int op;
-        cout << "Elige un estado para restaurar (1-" << mementos.size() << "): ";
-        cin >> op;
-        nivel = mementos[op - 1]->getNivel();
-        x = mementos[op - 1]->getPosicionX();
-        y = mementos[op - 1]->getPosicionY();
+        return instance;
     }
 };
 
-// ========== PATRÓN ITERATOR ==========
-// Una canción cualquiera
-struct Cancion {
-    string titulo, artista;
-    Cancion(string t, string a) : titulo(t), artista(a) {}
-};
+Singleton* Singleton::instance = nullptr;
 
-// Iterador para recorrer canciones
-template<typename T>
-class Iterador {
-private:
-    vector<T> db;
-    int indice;
+
+// EJERCICIO 1 - SINGLETON DE SESIÓN
+
+class Sesion {
 public:
-    Iterador(vector<T> _db) : db(_db), indice(0) {}
-
-    T operator*() {
-        return db[indice];
+    static Sesion* get() {
+        if (instancia == nullptr) {
+            int pw;
+            cout << "Ingrese su contraseña: ";
+            cin >> pw;
+            instancia = new Sesion(); // Solo se crea una vez
+        }
+        return instancia;
     }
 
-    void siguiente() {
-        indice++;
+    void view() {
+        cout << "Ingresando a la aplicacion...\n";
     }
 
-    bool final() {
-        return indice < db.size();
+private:
+    static Sesion* instancia;
+    Sesion() {} // Constructor privado
+};
+
+Sesion* Sesion::instancia = nullptr;
+
+
+// EJERCICIO 2 - ABSTRACT FACTORY
+
+// Interfaces de cámaras y botones
+class Camara {
+public:
+    virtual void capturar() = 0;
+};
+
+class CamaraWindows : public Camara {
+public:
+    void capturar() override {
+        cout << "Capturando imagen desde Windows..." << endl;
     }
 };
 
-// Reproductor de canciones
-template<typename T>
-class Reproductor {
-private:
-    vector<T> lista_de_canciones;
+class CamaraLinux : public Camara {
 public:
-    void agregarCancion(T c) {
-        lista_de_canciones.push_back(c);
+    void capturar() override {
+        cout << "Capturando imagen desde Linux..." << endl;
+    }
+};
+
+class Boton {
+public:
+    virtual void grabar() = 0;
+};
+
+class BotonWindows : public Boton {
+public:
+    void grabar() override {
+        cout << "Grabando imagen desde Windows..." << endl;
+    }
+};
+
+class BotonLinux : public Boton {
+public:
+    void grabar() override {
+        cout << "Grabando imagen desde Linux..." << endl;
+    }
+};
+
+// Fábrica abstracta
+class AppFactory {
+public:
+    virtual Camara* crearCamara() = 0;
+    virtual Boton* crearBoton() = 0;
+};
+
+// Fábricas concretas para cada sistema operativo
+class WindowsFactory : public AppFactory {
+public:
+    Camara* crearCamara() override {
+        return new CamaraWindows();
     }
 
-    Iterador<T> inicio() {
-        return Iterador<T>(lista_de_canciones);
+    Boton* crearBoton() override {
+        return new BotonWindows();
+    }
+};
+
+class LinuxFactory : public AppFactory {
+public:
+    Camara* crearCamara() override {
+        return new CamaraLinux();
+    }
+
+    Boton* crearBoton() override {
+        return new BotonLinux();
+    }
+};
+
+// Aplicación que usa la fábrica
+class App {
+private:
+    AppFactory* factory;
+
+public:
+    App(AppFactory* f) : factory(move(f)) {}
+
+    void crearApp() {
+        auto camara = factory->crearCamara();
+        auto boton = factory->crearBoton();
+        camara->capturar();
+        boton->grabar();
+    }
+};
+
+
+// SQLQueryBuilder - PATRÓN BUILDER
+
+// Builder para construir una consulta SQL paso a paso
+class SQLQueryBuilder {
+private:
+    string query;
+    string tabla;
+    vector<string> columnas;
+    string filtro_columna;
+    string filtro_valor;
+    string orden;
+    int limite = -1;
+
+public:
+    SQLQueryBuilder& setTable(string table) {
+        tabla = table;
+        return *this;
+    }
+
+    SQLQueryBuilder& addColumn(string columna) {
+        columnas.push_back(columna);
+        return *this;
+    }
+
+    SQLQueryBuilder& setWhereClause(string columna, string valor) {
+        filtro_columna = columna;
+        filtro_valor = valor;
+        return *this;
+    }
+
+    SQLQueryBuilder& setOrderByClause(string orden) {
+        this->orden = orden;
+        return *this;
+    }
+
+    SQLQueryBuilder& setLimit(int limit) {
+        this->limite = limit;
+        return *this;
+    }
+
+    string build() {
+        query = "SELECT ";
+        for (int i = 0; i < columnas.size(); i++) {
+            query += columnas[i];
+            if (i != columnas.size() - 1)
+                query += ", ";
+        }
+
+        query += " FROM " + tabla;
+
+        if (!filtro_columna.empty())
+            query += " WHERE " + filtro_columna + " = '" + filtro_valor + "'";
+
+        if (!orden.empty())
+            query += " ORDER BY " + orden;
+
+        if (limite != -1)
+            query += " LIMIT " + to_string(limite);
+
+        return query;
     }
 };
 
 
 int main() {
-    cout << "================ OBSERVER =================\n";
-    Usuario usuario("Usuario1");
-    Seguidor seguidor1("Seguidor1");
-    Seguidor seguidor2("Seguidor2");
-    Externo externo1("Externo1");
+    try {
+        // Crear consulta usando SQLQueryBuilder (Builder)
+        string query = SQLQueryBuilder()
+            .setTable("empleados")
+            .addColumn("id")
+            .addColumn("posicion")
+            .setWhereClause("position", "Analista")
+            .setOrderByClause("nombre ASC")
+            .setLimit(10)
+            .addColumn("nombre")
+            .build();
 
-    usuario.agregarObservador(&seguidor1);
-    usuario.agregarObservador(&seguidor2);
-    usuario.agregarObservador(&externo1);
-
-    usuario.notificarSeguidores("¡Hoy estoy de viaje!");
-
-    cout << "\n================ MEMENTO =================\n";
-    Personaje pj("Heroe");
-    pj.guardarEstado();
-    pj.guardarEstado();
-    pj.guardarEstado();
-    pj.guardarEstado();
-    pj.restaurarEstado();
-    pj.info();
-
-    cout << "\n================ ITERATOR ================\n";
-    Reproductor<Cancion> reproductor;
-    reproductor.agregarCancion(Cancion("Canción 1", "Artista A"));
-    reproductor.agregarCancion(Cancion("Canción 2", "Artista B"));
-    reproductor.agregarCancion(Cancion("Canción 3", "Artista C"));
-
-    Iterador<Cancion> it = reproductor.inicio();
-    while (it.final()) {
-        Cancion c = *it;
-        cout << "🎵 Reproduciendo: " << c.titulo << " - " << c.artista << endl;
-        it.siguiente();
+        cout << query << std::endl;
     }
+    catch (const std::exception& e) {
+        cerr << "Error al construir la consulta: " << e.what() << std::endl;
+    }
+
+    /*
+    // Abstract Factory
+    AppFactory* factory;
+    #ifdef _WIN32
+    factory = new WindowsFactory();
+    #else
+    factory = new LinuxFactory();
+    #endif
+    App app(factory);
+    app.crearApp();
+    */
+
+    /*
+    // Sesión (Singleton personalizado)
+    Sesion* s1 = Sesion::get();
+    s1->view();
+    Sesion* s2 = Sesion::get();
+    s2->view();
+    */
+
+    /*
+    // Singleton tradicional
+    Singleton* instance1 = Singleton::getInstance();
+    Singleton* instance2 = Singleton::getInstance();
+    cout << "instance1 = " << instance1 << endl;
+    cout << "instance2 = " << instance2 << endl;
+    */
+
+    /*
+    // Uso de struct red con variable estática
+    red user1("usr1");
+    red user2("usr2");
+    cout << user1.archivo << endl;
+    cout << user2.archivo << endl;
+    cout << red::get() << endl;
+    */
 
     return 0;
 }
