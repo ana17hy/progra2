@@ -1,142 +1,150 @@
+// PATRONES DE DISEÑO II
+
 #include <iostream>
-#include <set>
+#include <set>       // conjunto ordenado
 using namespace std;
 
-// PATRON ADAPTER
+/*
+// Ejemplo de Adapter
 
-// Clase base para métodos de pago
-class Pago {
+// Interfaz de pago genérico
+ class Pago {
 public:
-    virtual void pagar() = 0; // Método abstracto que se implementará en subclases
+    virtual void pagar() = 0;  // método puro para pagar
 };
 
-// Implementación del pago con tarjeta
+// Implementación de Pago con tarjeta
 class PagoTarjeta : public Pago {
 public:
     void pagar() override {
         int nt, ccv;
         string fc;
         cout << "#Tarjeta: ";
-        cin >> nt;
+        cin >> nt;           // lee número de tarjeta
         cout << "CCV: ";
-        cin >> ccv;
+        cin >> ccv;          // lee código CCV
         cout << "MM/YY: ";
-        cin >> fc;
+        cin >> fc;           // lee fecha de expiración
         cout << "Pago Exitoso!" << endl;
     }
 };
 
-// Clase que representa el pago con PayPal (pero no hereda de Pago)
+// Clase PayPal que no implementa la interfaz Pago
 class PagoPayPal {
 public:
-    void pagodirecto(string user, string pw) {
-        cout << "Pago con PayPal: user: " << user << ", pw: " << pw << endl;
+    void pagodirecto(string user, string pw){
+        // método específico de PayPal
+        cout << "Pago con PayPal: user: " << user
+             << ", pw: " << pw << endl;
     }
 };
 
-// Adaptador que permite usar PagoPayPal como si fuera un Pago
-class AdaptadorPayPal : public Pago {
+// Adaptador para usar PagoPayPal como Pago
+class AdaptadorPayPal: public Pago {
 private:
-    PagoPayPal* pago_paypal = new PagoPayPal(); // Composición con la clase real
+    PagoPayPal* pago_paypal;   // instancia interna de PayPal
 public:
     void pagar() override {
         string user, pw;
         cout << "User: ";
-        cin >> user;
+        cin >> user;           // lee usuario PayPal
         cout << "Password: ";
-        cin >> pw;
-        pago_paypal->pagodirecto(user, pw); // Usa el método de la clase adaptada
+        cin >> pw;             // lee contraseña PayPal
+        pago_paypal->pagodirecto(user, pw);
     }
 };
+*/
 
+// Ejemplo de Proxy para controlar acceso
 
-// PATRON PROXY
-
-// Interfaz común para sitios web
+// Interfaz común para visualizar un sitio web
 class SitioWeb {
 public:
-    virtual void visualizar() const = 0;
+    virtual void visualizar() const = 0;  // método puro
 };
 
-// Sitio web real, sin restricciones
+// Implementación que descarga y muestra la página directamente
 class SitioWebSinProxy : public SitioWeb {
 private:
-    string url;
+    string url;  // URL del sitio
 
+    // Simula la descarga inicial desde el servidor
     void cargarDesdeServidor() {
-        // Simula cargar el sitio desde internet
-        cout << "Descargando el sitio web desde el servidor: " << url << endl;
+        cout << "Descargando el sitio web desde el servidor: "
+             << url << endl;
     }
 
 public:
-    SitioWebSinProxy(const string& url) : url(url) {
-        cargarDesdeServidor(); // Se carga al crearlo
+    // Constructor: recibe la URL y descarga la página
+    SitioWebSinProxy(const string& url)
+        : url(url) {
+        cargarDesdeServidor();
     }
 
+    // Muestra el sitio descargado
     void visualizar() const override {
-        cout << "Visualizando el sitio web: " << url << endl;
+        cout << "Visualizando el sitio web: "
+             << url << endl;
     }
 };
 
-// Proxy que bloquea ciertos sitios web
+// Proxy que filtra sitios prohibidos antes de mostrar
 class ProxySitioWeb : public SitioWeb {
 private:
-    // Lista de sitios bloqueados
+    // Lista de URLs no permitidas
     set<string> sitiosWebNoPermitidos = {
         "www.sitioprohibido1.com",
         "www.sitioprohibido2.com",
         "www.sitioprohibido3.com"
     };
-
-    string url;
-    SitioWebSinProxy sitio; // El objeto real
+    string url;                   // URL solicitada
+    SitioWebSinProxy sitio;       // objeto real sin proxy
 
 public:
-    ProxySitioWeb(const string& url) : sitio(url), url(url) {}
+    // Constructor crea el objeto real con la misma URL
+    ProxySitioWeb(const string& url)
+        : sitio(url), url(url) {}
 
+    // Antes de visualizar revisa si la URL está en la lista negra
     void visualizar() const override {
-        // Verifica si el sitio está prohibido
-        for (string urli : sitiosWebNoPermitidos) {
-            if (url == urli)
-                return; // No muestra nada si está prohibido
+        // Si está prohibida simplemente no hace nada
+        if (sitiosWebNoPermitidos.count(url)) {
+            return;
         }
-        // Si no está prohibido, lo muestra
+        // Si no está prohibida delega al objeto real
         sitio.visualizar();
     }
 };
 
-
 int main() {
-    // Prueba del patrón Proxy
-    SitioWeb* sitio;
-
-    // Sitio permitido
-    sitio = new ProxySitioWeb("www.sitiopermitido1.com");
+    // Usamos el Proxy para un sitio permitido
+    SitioWeb* sitio = new ProxySitioWeb("www.sitiopermitido1.com");
     sitio->visualizar();
+    // Salida: descarga + visualización
 
-    // Sitio prohibido sin proxy (lo carga igual)
+    // Creamos directamente sin proxy (descarga siempre)
     sitio = new SitioWebSinProxy("www.sitioprohibido1.com");
     sitio->visualizar();
+    // Salida: descarga + visualización (no pasa por el Proxy)
 
-    // Sitio prohibido con proxy (no se muestra)
+    // Usamos Proxy para un sitio prohibido
     sitio = new ProxySitioWeb("www.sitioprohibido1.com");
     sitio->visualizar();
+    // Sin salida pues la URL está en la lista negra
 
     /*
-    // Prueba del patrón Adapter
+    // Ejemplo de uso de Adapter de Pago
+
     Pago* pago;
     int op;
     cout << "¿Como quiere pagar? [Tarjeta:0, Paypal: 1]: ";
     cin >> op;
-
     if (op == 0)
-        pago = new PagoTarjeta();       // Usa tarjeta
+        pago = new PagoTarjeta();
     else
-        pago = new AdaptadorPayPal();   // Usa PayPal adaptado
-
+        pago = new AdaptadorPayPal();
     pago->pagar();
-    */
+     */
 
     return 0;
 }
-
