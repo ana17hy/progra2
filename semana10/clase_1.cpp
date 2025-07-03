@@ -4,7 +4,6 @@
 #include <vector>
 using namespace std;
 
-
 // Ejemplo 1: Miembros estaticos y Singleton
 
 // Estructura "red" que muestra uso de un miembro estatico
