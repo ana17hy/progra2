@@ -1,233 +1,142 @@
-
 #include <iostream>
-#include <vector>
+#include <set>
 using namespace std;
 
+// PATRON ADAPTER
 
-// PATRON ITERADOR
-
-// Representa una canción con título y artista
-struct Cancion {
-    string titulo, artista;
-    Cancion(string t, string a): titulo(t), artista(a) {}
+// Clase base para métodos de pago
+class Pago {
+public:
+    virtual void pagar() = 0; // Método abstracto que se implementará en subclases
 };
 
-// Iterador para recorrer una lista de cualquier tipo T
-template<typename T>
-class Iterador {
-private:
-    vector<T> db;   // Lista de elementos
-    int indice;     // Índice actual del iterador
+// Implementación del pago con tarjeta
+class PagoTarjeta : public Pago {
 public:
-    Iterador(vector<T> _db) : db(_db), indice(0) {}
-
-    // Devuelve el elemento actual
-    T operator*() {
-        return db[indice];
-    }
-
-    // Pasa al siguiente elemento
-    void siguiente() {
-        indice++;
-    }
-
-    // Verifica si aún no llega al final
-    bool final() {
-        return indice < db.size();
+    void pagar() override {
+        int nt, ccv;
+        string fc;
+        cout << "#Tarjeta: ";
+        cin >> nt;
+        cout << "CCV: ";
+        cin >> ccv;
+        cout << "MM/YY: ";
+        cin >> fc;
+        cout << "Pago Exitoso!" << endl;
     }
 };
 
-// Iterador inverso (declarado pero no implementado por el profe)
-template<typename T>
-class IteradorInv {};
-
-// Reproductor que guarda canciones y crea iteradores para recorrerlas
-template<typename T>
-class Reproductor {
-private:
-    vector<T> lista_de_canciones;
+// Clase que representa el pago con PayPal (pero no hereda de Pago)
+class PagoPayPal {
 public:
-    // Agrega una canción a la lista
-    void agregarCancion(T c) {
-        lista_de_canciones.push_back(c);
+    void pagodirecto(string user, string pw) {
+        cout << "Pago con PayPal: user: " << user << ", pw: " << pw << endl;
     }
+};
 
-    // Crea un iterador para recorrer desde el inicio
-    Iterador<T> inicio() {
-        return Iterador<T>(lista_de_canciones);
-    }
-
-    // (Futuro) Crea un iterador inverso
-    IteradorInv<T> inicioInv() {
-        return IteradorInv<T>(lista_de_canciones);
+// Adaptador que permite usar PagoPayPal como si fuera un Pago
+class AdaptadorPayPal : public Pago {
+private:
+    PagoPayPal* pago_paypal = new PagoPayPal(); // Composición con la clase real
+public:
+    void pagar() override {
+        string user, pw;
+        cout << "User: ";
+        cin >> user;
+        cout << "Password: ";
+        cin >> pw;
+        pago_paypal->pagodirecto(user, pw); // Usa el método de la clase adaptada
     }
 };
 
 
-// PATRON MEMENTO
+// PATRON PROXY
 
-// Clase que guarda un estado del personaje (nivel, x, y)
-class Memento {
-private:
-    int nivel;
-    int X;
-    int Y;
+// Interfaz común para sitios web
+class SitioWeb {
 public:
-    Memento (const int& niv, int posicionX, int posicionY)
-        : nivel(niv), X(posicionX), Y(posicionY) {}
-
-    // Métodos para acceder a los datos guardados
-    int getNivel() const { return nivel; }
-    int getPosicionX() const { return X; }
-    int getPosicionY() const { return Y; }
+    virtual void visualizar() const = 0;
 };
 
-// Clase principal que usa el patrón Memento
-class Personaje {
+// Sitio web real, sin restricciones
+class SitioWebSinProxy : public SitioWeb {
 private:
-    string nombre;
-    int nivel;
-    int x, y;
-    vector<Memento*> mementos; // Guarda todos los estados anteriores
-public:
-    Personaje(const string& nombre) : nombre(nombre), nivel(1), x(0), y(0) {}
+    string url;
 
-    // Muestra el estado actual del personaje
-    void info(){
-        cout << "Nivel: " << nivel << ", Pos=(" << x << ", " << y << ")" << endl;
+    void cargarDesdeServidor() {
+        // Simula cargar el sitio desde internet
+        cout << "Descargando el sitio web desde el servidor: " << url << endl;
     }
 
-    // Permite elegir un estado anterior guardado
-    void restaurarEstado() {
-        cout << "--------------------------------\n";
-        for (int i = 0; i < mementos.size(); i++) {
-            cout << "----------- Estado " << i + 1 << " ----------\n";
-            cout << "-Nivel: " << mementos[i]->getNivel() << endl;
-            cout << "-Posicion: (" << mementos[i]->getPosicionX()
-                 << ", " << mementos[i]->getPosicionY() << ")\n";
+public:
+    SitioWebSinProxy(const string& url) : url(url) {
+        cargarDesdeServidor(); // Se carga al crearlo
+    }
+
+    void visualizar() const override {
+        cout << "Visualizando el sitio web: " << url << endl;
+    }
+};
+
+// Proxy que bloquea ciertos sitios web
+class ProxySitioWeb : public SitioWeb {
+private:
+    // Lista de sitios bloqueados
+    set<string> sitiosWebNoPermitidos = {
+        "www.sitioprohibido1.com",
+        "www.sitioprohibido2.com",
+        "www.sitioprohibido3.com"
+    };
+
+    string url;
+    SitioWebSinProxy sitio; // El objeto real
+
+public:
+    ProxySitioWeb(const string& url) : sitio(url), url(url) {}
+
+    void visualizar() const override {
+        // Verifica si el sitio está prohibido
+        for (string urli : sitiosWebNoPermitidos) {
+            if (url == urli)
+                return; // No muestra nada si está prohibido
         }
-        int op;
-        cout << "Elige un estado: ";
-        cin >> op;
-        // Restaurar el estado elegido
-        nivel = mementos[op - 1]->getNivel();
-        x = mementos[op - 1]->getPosicionX();
-        y = mementos[op - 1]->getPosicionY();
-    }
-
-    // Guarda el estado actual (nivel, x, y)
-    void guardarEstado() {
-        cout << "Guardo Estado: Nivel " << nivel << ", Pos=(" << x << ", " << y << ")\n";
-        mementos.push_back(new Memento(nivel, x, y));
-    }
-};
-
-
-// PATRON OBSERVER
-
-// Clase base para cualquier observador
-class Observer {
-public:
-    virtual void noticar(string historia, string usuario) = 0;
-};
-
-// Observador tipo Seguidor: recibe historias nuevas
-class Seguidor : public Observer {
-private:
-    string nombre;
-public:
-    Seguidor(const string& nombre) : nombre(nombre) {}
-
-    void noticar(string historia, string usuario) override {
-        cout << nombre << " - Nueva historia de " << usuario << ": " << historia << endl;
-    }
-};
-
-// Observador tipo Externo: no recibe historias
-class Externo: public Observer {
-private:
-    string nombre;
-public:
-    Externo(const string& nombre) : nombre(nombre) {}
-
-    void noticar(string historia, string usuario) override {
-        cout << nombre << " - No hay nueva historia de " << usuario << endl;
-    }
-};
-
-// Clase principal observada: Usuario que puede publicar historias
-class Usuario {
-private:
-    string nombre;
-    vector<Observer*> observadores;
-public:
-    Usuario(const string& nombre) : nombre(nombre) {}
-
-    // Agrega un observador a la lista
-    void agregarObservador(Observer* observador) {
-        observadores.push_back(observador);
-    }
-
-    // Notifica a todos los observadores una nueva historia
-    void notificarSeguidores(const string& historia) {
-        for (Observer* obs: observadores)
-            obs->noticar(historia, nombre);
-    }
-
-    // Método futuro para eliminar observadores
-    void eliminarObservador(Observer* observador) {
-        // (Pendiente de implementar)
+        // Si no está prohibido, lo muestra
+        sitio.visualizar();
     }
 };
 
 
 int main() {
-    // ---------- OBSERVER ----------
-    Usuario usuario("Usuario1");
-    Seguidor seguidor1("Seguidor1");
-    Seguidor seguidor2("Seguidor2");
-    Externo externo1("Externo1");
+    // Prueba del patrón Proxy
+    SitioWeb* sitio;
 
-    // Agregamos los observadores (seguidores)
-    usuario.agregarObservador(&seguidor1);
-    usuario.agregarObservador(&seguidor2);
-    usuario.agregarObservador(&externo1);
+    // Sitio permitido
+    sitio = new ProxySitioWeb("www.sitiopermitido1.com");
+    sitio->visualizar();
 
-    // Enviamos una historia a todos
-    string nuevaHistoria = "Hoy estoy de viaje!";
-    usuario.notificarSeguidores(nuevaHistoria);
+    // Sitio prohibido sin proxy (lo carga igual)
+    sitio = new SitioWebSinProxy("www.sitioprohibido1.com");
+    sitio->visualizar();
 
-    /*
-    // ---------- MEMENTO ----------
-    Personaje pj("Heroe");
-    pj.guardarEstado();
-    pj.guardarEstado();
-    pj.guardarEstado();
-    pj.guardarEstado();
-    pj.restaurarEstado(); // Elegimos uno
-    pj.info(); // Muestra el estado restaurado
-    */
+    // Sitio prohibido con proxy (no se muestra)
+    sitio = new ProxySitioWeb("www.sitioprohibido1.com");
+    sitio->visualizar();
 
     /*
-    // ---------- ITERATOR ----------
-    Reproductor<Cancion> reproductor;
-    Cancion cancion1("Cancion 1", "Artista 1");
-    Cancion cancion2("Cancion 2", "Artista 2");
-    Cancion cancion3("Cancion 3", "Artista 3");
+    // Prueba del patrón Adapter
+    Pago* pago;
+    int op;
+    cout << "¿Como quiere pagar? [Tarjeta:0, Paypal: 1]: ";
+    cin >> op;
 
-    // Agregamos canciones al reproductor
-    reproductor.agregarCancion(cancion1);
-    reproductor.agregarCancion(cancion2);
-    reproductor.agregarCancion(cancion3);
+    if (op == 0)
+        pago = new PagoTarjeta();       // Usa tarjeta
+    else
+        pago = new AdaptadorPayPal();   // Usa PayPal adaptado
 
-    // Creamos un iterador y reproducimos las canciones
-    Iterador<Cancion> iterador = reproductor.inicio();
-    while (iterador.final()) {
-        Cancion cancion = *iterador;
-        cout << "Reproduciendo: " << cancion.titulo << " - " << cancion.artista << endl;
-        iterador.siguiente();
-    }
+    pago->pagar();
     */
 
     return 0;
 }
+
