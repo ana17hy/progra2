@@ -15,7 +15,9 @@ static int get() {
 return archivo;
 }
 };
+
 int red::archivo = 3;
+
 class Singleton {
 private:
 static Singleton* instance;
