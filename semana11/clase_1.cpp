@@ -34,8 +34,7 @@ class PagoPayPal {
 public:
     void pagodirecto(string user, string pw){
         // método específico de PayPal
-        cout << "Pago con PayPal: user: " << user
-             << ", pw: " << pw << endl;
+        cout << "Pago con PayPal: user: " << user << ", pw: " << pw << endl;
     }
 };
 

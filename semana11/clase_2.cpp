@@ -96,8 +96,7 @@ public:
 
     // Muestra el estado actual
     void info() {
-        cout << "Nivel: " << nivel
-             << ", Pos=(" << x << ", " << y << ")" << endl;
+        cout << "Nivel: " << nivel << ", Pos=(" << x << ", " << y << ")" << endl;
     }
 
     // Lista todos los estados guardados y permite elegir uno
@@ -113,17 +112,16 @@ public:
         cout << "Elige un estado: ";
         cin >> op;
         nivel = mementos[op-1]->getNivel();
-        x     = mementos[op-1]->getPosicionX();
-        y     = mementos[op-1]->getPosicionY();
+          x   = mementos[op-1]->getPosicionX();
+          y   = mementos[op-1]->getPosicionY();
     }
 
     // Genera un nuevo estado aleatorio y lo guarda
     void guardarEstado() {
         nivel += rand() % 3;
-        x     += rand() % 3;
-        y     += rand() % 3;
-        cout << "Guardo Estado: Nivel " << nivel
-             << ", Pos=(" << x << ", " << y << ")\n";
+          x   += rand() % 3;
+          y   += rand() % 3;
+        cout << "Guardo Estado: Nivel " << nivel << ", Pos=(" << x << ", " << y << ")\n";
         mementos.push_back(new Memento(nivel, x, y));
     }
 };
@@ -237,8 +235,7 @@ int main() {
     Iterador<Cancion> it = reproductor.inicio();
     while (it.final()) {
         Cancion c = *it;
-        cout << "Reproduciendo: " << c.titulo
-             << " - " << c.artista << endl;
+        cout << "Reproduciendo: " << c.titulo << " - " << c.artista << endl;
         it.siguiente();
     }
     */
